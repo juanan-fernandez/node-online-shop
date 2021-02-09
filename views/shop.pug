@@ -1,0 +1,20 @@
+extends layout/main-layout.pug
+block otros_estilos
+   link(rel="stylesheet" href="/css/product.css")
+block mi_contenido 
+      main
+         if prods.length > 0
+            .grid
+               each product in prods
+                  article.card.product-item
+                     header.card__header
+                        h1.product__title #{product.title}
+                     .card__image 
+                        img(src="https://www.hola.com/imagenes/estar-bien/20191004150785/pastor-aleman-raza-de-perro-caracteristicas/0-728-57/raza-de-perro-pastor-aleman-m.jpg", alt="Perrete")
+                     .card__content
+                        h2.product__price $19.99
+                        p.product__description A very interesting book about so many even more interesting things!
+                     .card__actions
+                        button.btn Add to Cart
+         else
+            h1 No products

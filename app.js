@@ -12,12 +12,10 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', 'views'); 
 app.use(express.static(path.join(__dirname, 'public'))); //le indico la ruta al contenido estático 
-
 app.use(bodyParser.urlencoded({extended:false}))
 
 app.use('/admin',adminRoutes); //podemos filtrar por un prefijo las rutas
 app.use(shopRoutes);
-
 //page not found
 app.use(notFound.getNotFound);
 

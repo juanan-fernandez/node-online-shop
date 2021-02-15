@@ -3,8 +3,7 @@ const Product = require('../models/product');
 exports.getAddProduct= (req, res, next) => {
    res.render('admin/add-product', {
 			pageTitle:'Add Prod', 
-			path:'/admin/add-product',
-			formsCSS: true
+			path:'/admin/add-product'
 	   }
    );
 }

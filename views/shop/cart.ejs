@@ -5,5 +5,18 @@
         <%- include('../includes/navigation.ejs') %>
         <main>
             <h1>Cesta de la compra</h1>
+            <% if (cart) { %>
+                <ul>
+                    <%cart.products.forEach (p => {%>
+                        <li><%=p.title%> (<%=p.qty%>)</li> 
+                        <form action="/cart-delete-item" method="POST">
+                            <input type="hidden" value="<%=p.id%>" name="productId"/>
+                            <button type="submit" class="btn">Delete</button>
+                        </form>
+                    <%})%>                
+                </ul>
+            <% }else {%>
+                <h2>No has añadido ningún artículo en el carrito.</h2>
+            <%}%>
         </main>
         <%- include('../includes/end.ejs') %>

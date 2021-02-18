@@ -18,10 +18,7 @@
                      <%= product.description%>
                   </p>
                   <div class="card__actions">
-                     <form action="/cart" method="POST">
-                           <button type="submit" class="btn">Add to Cart</button>
-                           <input type="hidden" name="productId" value="<%=product.id%>">
-                     </form>
+                     <%-include('../includes/add-to-cart.ejs')%> 
                   </div>
                <% } else { %>
                   <h1>Can not find the requested product</h1>

@@ -17,12 +17,6 @@ app.set('views', 'views');
 app.use(express.static(path.join(__dirname, 'public'))); //le indico la ruta al contenido estático 
 app.use(bodyParser.urlencoded({extended:false})) //body-parser config
 
-// db.execute('select * from products').then(rs => {
-//    console.log(rs[0], rs[1]);
-// }).catch(err=>{
-//    console.log(err);
-// });
-
 app.use('/admin',adminRoutes); //podemos filtrar por un prefijo las rutas
 app.use(shopRoutes);
 //page not found

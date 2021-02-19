@@ -2,19 +2,23 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getIndex = (req, res) => {
-   const products = Product.fetchAll(products => {
-      res.render('shop/index', 
+   Product.fetchAll().then( rs => {
+      const [rows, fieldData] = rs;
+		res.render('shop/index', 
       {
-         prods:products, 
+         prods:rows, 
          pageTitle:'Products List', 
          path:'/products'
-      }); //usamos motor de plantillas
+      }); //usamos motor de plantillas	
+   }).catch(err=> {
+      console.log(err);
    });
+   
 }
 
 exports.getCart = (req, res, next) => {
    Cart.getCart(cart => {
-      Product.fetchAll(allProducts => {
+      Product.fetchAll.then(allProducts => {
          //voy a montar un objeto con información de ambos modelos
          let prodsInCart = [];
          let prod = {};
@@ -50,10 +54,11 @@ exports.getOrders = (req, res, next) => {
 
 
 exports.getProducts =  (req, res) => {
-   const products = Product.fetchAll( products => {
+   Product.fetchAll().then( rs => {
+      const [rows, fieldsData] = rs;
       res.render('shop/product-list', 
       {
-         prods: products, 
+         prods: rows, 
          pageTitle:'Products List', 
          path:'/products'
       }); //usamos motor de plantillas
@@ -62,7 +67,9 @@ exports.getProducts =  (req, res) => {
 
 exports.getProductDetails = (req, res) => {
    const prodId = req.params.productId;
-   const product = Product.fetchProduct(prodId, product => {
+   Product.fetchProduct(prodId).then(rs => {
+      const [row] = rs;
+      const [product] = row;
       res.render('shop/product-detail', {pageTitle:product.title, path:'/products', product: product});
    }); 
 }

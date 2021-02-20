@@ -27,7 +27,7 @@ module.exports = class Product {
 	}
 
 	static deleteById(id) {
-		return db.execute("delete * from products where idProduct=?", [id]);
+		return db.execute("delete from products where idProduct=?", [id]);
 	}
 
 	static fetchAll() {

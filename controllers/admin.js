@@ -29,7 +29,7 @@ exports.getEditProduct = (req, res) => {
 	});
 };
 
-exports.postEditProduct = (req, res, next) => {
+exports.postEditProduct = (req, res) => {
 	const product = new Product(
 		req.body.productId,
 		req.body.title,
@@ -48,12 +48,15 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res) => {
 	const prodId = req.body.productId;
-	Product.deleteById(prodId);
-	res.redirect('/admin/products');
+	Product.deleteById(prodId).then(result => {
+		res.redirect('/admin/products');
+	}).catch(err=>{
+		console.log(err);
+	});	
 };
 
 exports.getProducts = (req, res) => {
-	const products = Product.fetchAll().then(rs => {
+	Product.fetchAll().then(rs => {
       const [rows] = rs;
 		res.render('admin/products', {
 			prods: rows,

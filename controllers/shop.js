@@ -2,49 +2,93 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getIndex = (req, res) => {
-   Product.fetchAll().then( rs => {
-      const [rows, fieldData] = rs;
+   Product.findAll().then( products => {
 		res.render('shop/index', 
       {
-         prods:rows, 
+         prods:products, 
          pageTitle:'Products List', 
          path:'/products'
       }); //usamos motor de plantillas	
    }).catch(err=> {
       console.log(err);
    });
-   
 }
 
 exports.getCart = (req, res, next) => {
-   Cart.getCart(cart => {
-      Product.fetchAll.then(allProducts => {
-         //voy a montar un objeto con información de ambos modelos
-         let prodsInCart = [];
-         let prod = {};
-         cart.products.forEach(p => {
-            prod = allProducts.find(ap => ap.id === p.id);
-            prod = {...prod, qty: p.qty, price: p.price}
-            prodsInCart.push(prod);
-         });
-         const cartInfo = {products: [...prodsInCart], totalCart: cart.totalPrice}
+   req.user.getCart()
+      .then(cart => {
+         console.log(cart);
+         return cart.getProducts();
+      }).then(prodsInCart => {
+         const cartInfo = {products: [...prodsInCart], totalCart: 0}
          res.render('shop/cart', {pageTitle:'Cart Items', path:'/cart', cart: cartInfo});
-      });
-      
+      }).catch(err=>{
+      console.log(err);
    });
+   // Cart.getCart(cart => {
+   //    Product.fetchAll.then(allProducts => {
+   //       //voy a montar un objeto con información de ambos modelos
+   //       let prodsInCart = [];
+   //       let prod = {};
+   //       cart.products.forEach(p => {
+   //          prod = allProducts.find(ap => ap.id === p.id);
+   //          prod = {...prod, qty: p.qty, price: p.price}
+   //          prodsInCart.push(prod);
+   //       });
+   //       
+   //       
+   //    });
+      
+   // });
    
 }
 
 exports.postCart = (req, res) => {
    const prodId = req.body.productId;
-   Product.fetchProduct(prodId, product => {
-      Cart.AddProduct(prodId, product.price, product.title);
-   });
-   res.redirect('/cart');
+   let fetchedCart;
+   let cartQuantity = 1;
+   req.user.getCart()
+      .then(cart => {
+         fetchedCart = cart;
+         return cart.getProducts({where: {productId: prodId}})
+      })
+      .then(products => {
+         let product = null;
+         if (products.length > 0) product = products[0];
+         if (product) {
+            cartQuantity = +product['carts-items'].quantity + 1;
+            return product;
+         }
+         //si el producto no existía: añadir el producto al carrito
+         return Product.findByPk(prodId)
+      })
+      .then(product => {
+            console.log(product);
+            return fetchedCart.addProduct(product, {through: {quantity: cartQuantity}})
+      })
+      .then( _ => {
+         res.redirect('/cart');      
+      })
+      .catch(err => {
+         console.log(err)
+      });
 }
 
 exports.deleteItemCart = (req, res) => {
-   Cart.removeFromCart(req.body.productId);
+   const prodId = req.body.prodId;
+   req.user.getCart()
+      .then(cart => {
+         return cart.getProducts({where:{productId: prodId}})
+      }).then(prodsInCart => {
+         const product = prodsInCart[0];
+         return product[carts-items].destroy()
+      })
+      .then(result=>{
+         console.log(result);
+      })
+      .catch(err=>{
+         console.log(err);
+      });
    res.redirect('/cart');
 }
 
@@ -54,11 +98,10 @@ exports.getOrders = (req, res, next) => {
 
 
 exports.getProducts =  (req, res) => {
-   Product.fetchAll().then( rs => {
-      const [rows, fieldsData] = rs;
+   Product.findAll().then( products => {
       res.render('shop/product-list', 
       {
-         prods: rows, 
+         prods: products, 
          pageTitle:'Products List', 
          path:'/products'
       }); //usamos motor de plantillas
@@ -67,9 +110,7 @@ exports.getProducts =  (req, res) => {
 
 exports.getProductDetails = (req, res) => {
    const prodId = req.params.productId;
-   Product.fetchProduct(prodId).then(rs => {
-      const [row] = rs;
-      const [product] = row;
+   Product.findByPk(prodId).then(product => {
       res.render('shop/product-detail', {pageTitle:product.title, path:'/products', product: product});
    }); 
 }

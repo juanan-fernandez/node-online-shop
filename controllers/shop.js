@@ -2,16 +2,17 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getIndex = (req, res) => {
-   Product.findAll().then( products => {
-		res.render('shop/index', 
-      {
-         prods:products, 
-         pageTitle:'Products List', 
-         path:'/products'
-      }); //usamos motor de plantillas	
-   }).catch(err=> {
-      console.log(err);
-   });
+   Product.findAll()
+      .then(products => {
+         res.render('shop/index', 
+         {
+            prods:products, 
+            pageTitle:'Products List', 
+            path:'/products'
+         }); //usamos motor de plantillas	
+      }).catch(err=> {
+         console.log(err);
+      });
 }
 
 exports.getCart = (req, res, next) => {
@@ -50,13 +51,13 @@ exports.postCart = (req, res) => {
    req.user.getCart()
       .then(cart => {
          fetchedCart = cart;
-         return cart.getProducts({where: {productId: prodId}})
+         return cart.getProducts({where: {id: prodId}})
       })
       .then(products => {
          let product = null;
          if (products.length > 0) product = products[0];
          if (product) {
-            cartQuantity = +product['carts-items'].quantity + 1;
+            cartQuantity = +product.cartitems.quantity + 1;
             return product;
          }
          //si el producto no existía: añadir el producto al carrito
@@ -75,21 +76,21 @@ exports.postCart = (req, res) => {
 }
 
 exports.deleteItemCart = (req, res) => {
-   const prodId = req.body.prodId;
+   const prodId = req.body.productId;
    req.user.getCart()
       .then(cart => {
-         return cart.getProducts({where:{productId: prodId}})
+         return cart.getProducts({where:{id: prodId}})
       }).then(prodsInCart => {
          const product = prodsInCart[0];
-         return product[carts-items].destroy()
+         return product.cartitems.destroy()
       })
       .then(result=>{
          console.log(result);
+         res.redirect('/cart');
       })
       .catch(err=>{
          console.log(err);
-      });
-   res.redirect('/cart');
+      });   
 }
 
 exports.getOrders = (req, res, next) => {
@@ -98,7 +99,7 @@ exports.getOrders = (req, res, next) => {
 
 
 exports.getProducts =  (req, res) => {
-   Product.findAll().then( products => {
+   Product.findAll().then(products => {
       res.render('shop/product-list', 
       {
          prods: products, 

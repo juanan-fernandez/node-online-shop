@@ -8,7 +8,7 @@ exports.getAddProduct = (req, res, next) => {
 	});
 };
 
-exports.postAddProduct = (req, res, next) => {
+exports.postAddProduct = (req, res) => {
 	req.user.createProduct({
 		title: req.body.title,
 		imageUrl: req.body.imageUrl,
@@ -70,9 +70,9 @@ exports.postEditProduct = (req, res) => {
 
 exports.postDeleteProduct = (req, res) => {
 	const prodId = req.body.productId;
-	Product.destroy({ where: { productId: prodId } })
+	Product.destroy({ where: { id: prodId } })
 		.then((result) => {
-			console.log(result); //en result viene el nº de registros eliminados
+			//console.log(result); //en result viene el nº de registros eliminados
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {

@@ -1,5 +1,5 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
+const Order = require('../models/order');
 
 exports.getIndex = (req, res) => {
    Product.findAll()
@@ -80,7 +80,8 @@ exports.deleteItemCart = (req, res) => {
    req.user.getCart()
       .then(cart => {
          return cart.getProducts({where:{id: prodId}})
-      }).then(prodsInCart => {
+      })
+      .then(prodsInCart => {
          const product = prodsInCart[0];
          return product.cartitems.destroy()
       })
@@ -94,7 +95,43 @@ exports.deleteItemCart = (req, res) => {
 }
 
 exports.getOrders = (req, res, next) => {
-   res.render('shop/orders',{pageTitle:'Pedidos', path:'/orders'});
+   req.user.getOrders({include: ['products']})
+   .then(orders =>{
+      res.render('shop/orders', {
+         pageTitle:'Pedidos', path:'/orders',
+         orders: orders
+      });
+   })
+   .catch(err=> console.log(err));
+   
+}
+
+exports.postOrder = (req, res) => {
+   let fetchedCart;
+   req.user.getCart()
+      .then(cart=>{
+         fetchedCart = cart;
+         return cart.getProducts()
+      })
+      .then(products => {
+         req.user.createOrder()
+            .then(order =>{
+               order.addProduct(
+                  products.map(product => {
+                     product.orderitem = {quantity: product.cartitems.quantity};
+                     return product;
+                  })
+               )
+            })
+            .catch(err=> console.log(err))
+      })
+      .then(result => {
+         return fetchedCart.setProducts(null)
+      })
+      .then(result => {
+         res.redirect('/orders');
+      })
+      .catch(err=> console.log(err))
 }
 
 

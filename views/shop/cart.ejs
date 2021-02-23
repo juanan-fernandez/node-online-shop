@@ -7,7 +7,7 @@
             <main>
                 <h1>Cesta de la compra</h1>
 
-                <% if (cart) { %>
+                <% if (cart.products.length>0) { %>
                     <ul class="cart__item-list">
                         <%cart.products.forEach (p=> {%>
                             <li class="cart__item">
@@ -19,6 +19,12 @@
                             </li>
                         <%})%>
                     </ul>
+                    <hr style="margin: 1rem;">
+                    <div class="centered">
+                        <form action="/create-order" method="POST">
+                            <button type="submit" class="btn">Order now!</button>
+                        </form>
+                    </div>
                 <% }else {%>
                     <h2>No has añadido ningún artículo en el carrito.</h2>
                 <%}%>

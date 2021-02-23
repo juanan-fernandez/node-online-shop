@@ -6,7 +6,9 @@ const sequelize = require('./util/database');
 const Product = require('./models/product');
 const User = require('./models/user');
 const Cart = require('./models/cart');
-const CartItem = require('./models/cartItem')
+const CartItem = require('./models/cartItem');
+const Order = require('./models/order');
+const OrderItem = require('./models/orderItem');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -34,14 +36,22 @@ app.use(shopRoutes);
 app.use(notFound.getNotFound);
 
 //Módelos relaciones
-User.hasMany(Product);
-Product.belongsTo(User, {constraints: true,  onDelete: 'CASCADE'}); //definir claves ajenas
-User.hasOne(Cart);
+//usuarios - productos - un usuario vende muchos productos
+User.hasMany(Product, {constraints: true,  onDelete: 'CASCADE', onUpdate: 'CASCADE'});
+Product.belongsTo(User); //definir claves ajenas
+//Usuarios - cart
+User.hasOne(Cart, {constraints: true,  onDelete: 'CASCADE'});
 //esta sería opcional. es suficiente con indicar la relación en un único sentido
-Cart.belongsTo(User, {constraints: true,  onDelete: 'CASCADE'}); 
+Cart.belongsTo(User); 
 //relación muchos a muchos a través de la entidad cart-item (CartItem)
 Cart.belongsToMany(Product, {through: CartItem});
 Product.belongsToMany(Cart, {through: CartItem});
+//orders-users
+User.hasMany(Order, {constraints: true,  onDelete: 'RESTRICT'});
+Order.belongsTo(User);
+//Orders-products
+Order.belongsToMany(Product, {through: OrderItem});
+Product.belongsToMany(Order, {through: OrderItem}); //esta segunda sentencia podía omitirse
 
 
 //sequelize.sync({force:true}) la opción force:true crea todas las tablas de nuevo, ojo se pierde toda la información de las tablas registros incluidos

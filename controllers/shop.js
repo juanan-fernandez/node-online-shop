@@ -116,7 +116,7 @@ exports.postOrder = (req, res) => {
       .then(products => {
          req.user.createOrder()
             .then(order =>{
-               order.addProduct(
+               return order.addProduct(
                   products.map(product => {
                      product.orderitem = {quantity: product.cartitems.quantity};
                      return product;

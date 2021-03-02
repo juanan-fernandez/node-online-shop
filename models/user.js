@@ -48,6 +48,19 @@ class User {
          {$set: {cart: updatedCart}}
       );
    }
+
+   cleanUpCart(productIdsCart) {
+      const db = getDb();
+      productIdsCart.forEach(p => {
+         return db.collection('products')
+            .findOne({_id: new mongo.ObjectID(p)})
+            .then(product => {
+               if(!product){
+                  this.deleteItemCart(p)
+               }
+            })
+      })
+   }
  
    getCart() {
       const db = getDb();
@@ -63,14 +76,59 @@ class User {
                      }).quantity
                   }
          });
-      }).catch(err=>{
+      }).catch(err=> {
          console.log(err);
       });
+   }
+
+   deleteItemCart(prodId) {
+      const updatedCart = this.cart.items.filter(item => item.productId.toString() !== prodId.toString());
+      this.cart.items = [...updatedCart];
+      
+      const db = getDb();
+      return db.collection('users').updateOne(
+         {_id: new mongo.ObjectID(this._id)},
+         {$set: {"cart.items": this.cart.items}}
+      );
    }
 
    static findById(userId) {
       const db = getDb();
       return db.collection('users').findOne({_id: new mongo.ObjectID(userId)});
+   }
+
+   addOrder() {
+      const db = getDb();
+      return this.getCart()
+         .then(cart => {
+            console.log(cart);
+            const order = {
+               "items": cart,
+               "user": {"userId": new mongo.ObjectID(this._id), "name": this.name, "email": this.email}
+            };
+            return db.collection('orders').insertOne(order)
+         })
+         .then(_ => {
+            this.cart.items=[];
+            return db.collection('users').updateOne(
+               {_id: new mongo.ObjectID(this._id)},
+               {$set: {"cart.items": [] }}
+            )
+         }).catch(err=>{
+            console.log(err);
+         });
+   }
+
+   getOrders() {
+      const db = getDb();
+      return db.collection('orders').find({"user.userId": new mongo.ObjectId(this._id)})
+         .toArray()
+         .then(orders => {
+            return orders
+         })
+         .catch(err=>{
+            console.log(err);
+         })
    }
 }
 

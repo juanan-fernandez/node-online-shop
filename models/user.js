@@ -1,10 +1,78 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../util/database');
+const mongo = require('mongodb');
+const getDb = require('../util/database').getDb;
 
-const User = sequelize.define('users', {
-	id: {type: Sequelize.INTEGER, autoIncrement: true, allowNull: false, primaryKey: true},
-	name: {type: Sequelize.STRING, allowNull: false},
-	email: {type: Sequelize.STRING, allowNull: false}
-});
+class User {
+   constructor(name, email, passwd, id, cart) {
+      this.name = name;
+      this.email = email;
+      this.passwd = passwd;
+      this._id = id;
+      this.cart = cart; // {items:[]}
+   }
+
+   save() {
+      const db = getDb();
+      return db.collection('users').insertOne(this)
+      .then(result => {
+         console.log(result);
+      })
+      .catch(err=> {
+         console.log(err)
+      })
+   }
+
+   addToCart(product) {
+
+      let newQty = 1;
+      let cartProductIndex = -1;
+      let updatedCartItems = [];
+
+      if(this.cart.items) {
+         updatedCartItems = [...this.cart.items];
+         cartProductIndex = this.cart.items.findIndex (cp => { 
+            return cp.productId.toString() === product._id.toString();
+         });
+      }
+
+      if (cartProductIndex >= 0) { //el producto ya está en el carrito.
+         newQty = this.cart.items[cartProductIndex].quantity + 1;
+         updatedCartItems[cartProductIndex].quantity = newQty;
+      }else{
+         updatedCartItems.push({ productId: new mongo.ObjectID(product._id), quantity: newQty })
+      }
+     
+      const updatedCart = {items: updatedCartItems};
+      const db = getDb();
+      return db.collection('users').updateOne(
+         {_id: new mongo.ObjectID(this._id)},
+         {$set: {cart: updatedCart}}
+      );
+   }
+ 
+   getCart() {
+      const db = getDb();
+      const productIds = this.cart.items.map(p => p.productId);
+      return db.collection('products').find({_id: {$in: productIds}})
+      .toArray()
+      .then(products => {
+         return products.map(p =>{
+            return {
+                     ...p, 
+                     quantity: this.cart.items.find(i => {
+                        return i.productId.toString() === p._id.toString();
+                     }).quantity
+                  }
+         });
+      }).catch(err=>{
+         console.log(err);
+      });
+   }
+
+   static findById(userId) {
+      const db = getDb();
+      return db.collection('users').findOne({_id: new mongo.ObjectID(userId)});
+   }
+}
+
 
 module.exports = User;

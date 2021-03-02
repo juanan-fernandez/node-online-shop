@@ -9,36 +9,22 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res) => {
-	req.user.createProduct({
-		title: req.body.title,
-		imageUrl: req.body.imageUrl,
-		description: req.body.description,
-		price: req.body.price
-	}).then( _ => {
-		res.redirect('/admin/products');
-	})
-	.catch((err) => {
-		console.log(err);
-	});
-
+	const product = new Product(req.body.title, req.body.price, req.body.description, req.body.imageUrl, req.user._id);
+	product.save()
+		.then(_ =>{
+			res.redirect('/admin/products');
+		})
+		.catch(err => {
+			console.log(err);
+			throw err;
+		});	
 };
 
 exports.getEditProduct = (req, res) => {
 	const prodId = req.params.productId;
 
-	//otra aproximación usando el findAll con un where para devolver los registros que nos interesan
-	// Product.findAll({where:{ productId: prodId}}).then(products=>{
-	// 	res.render('admin/edit-product', {
-	// 		pageTitle: 'Edit Prod',
-	// 		path: '/admin/edit-product',
-	// 		product: products[0] //se devuelve un array de registros
-	// 	});
-	// }).catch(err =>{
-	// 	console.log(err);
-	// });
-
-	Product.findByPk(prodId)
-		.then((product) => {
+	Product.findById(prodId)
+		.then(product => {
 			res.render('admin/edit-product', {
 				pageTitle: 'Edit Prod',
 				path: '/admin/edit-product',
@@ -51,16 +37,10 @@ exports.getEditProduct = (req, res) => {
 };
 
 exports.postEditProduct = (req, res) => {
-	Product.findByPk(req.body.productId)
-		.then((product) => {
-			product.title = req.body.title;
-			product.imageUrl = req.body.imageUrl;
-			product.description = req.body.description;
-			product.price = req.body.price;
-			return product.save();
-		})
+	const product = new Product(req.body.title, req.body.price, req.body.description, req.body.imageUrl);
+	product.update(req.body.productId)
 		.then((result) => {
-			console.log('Product updated!');
+			console.log(result);
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
@@ -70,9 +50,9 @@ exports.postEditProduct = (req, res) => {
 
 exports.postDeleteProduct = (req, res) => {
 	const prodId = req.body.productId;
-	Product.destroy({ where: { id: prodId } })
+	Product.deleteById(prodId)
 		.then((result) => {
-			//console.log(result); //en result viene el nº de registros eliminados
+			console.log(result); //en result viene el nº de registros eliminados
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
@@ -95,7 +75,7 @@ exports.postDeleteProduct = (req, res) => {
 // };
 
 exports.getProducts = (req, res) => {
-	Product.findAll().then((products) => {
+	Product.fetchAll().then((products) => {
 		res.render('admin/products', {
 			prods: products,
 			pageTitle: 'Products List',

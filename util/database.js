@@ -8,7 +8,7 @@ let _db;
 
 const mongoConnect = callback => {
 	const uriMongo = `mongodb+srv://juanan:${process.env.MONGO_PASSWORD}@cursonodemax.omdwl.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`;
-	MongoClient.connect(uriMongo)
+	MongoClient.connect(uriMongo, {useUnifiedTopology: true})
 		.then(client => {
 			console.log('Connected ok!');
 			_db = client.db();

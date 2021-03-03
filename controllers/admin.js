@@ -52,7 +52,7 @@ exports.postDeleteProduct = (req, res) => {
 	const prodId = req.body.productId;
 	Product.deleteById(prodId)
 		.then((result) => {
-			console.log(result); //en result viene el nº de registros eliminados
+			console.log("Deleted:", result); //en result viene el nº de registros eliminados
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {

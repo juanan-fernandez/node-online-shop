@@ -49,24 +49,40 @@ class User {
       );
    }
 
-   cleanUpCart(productIdsCart) {
+   async cleanUpCart(productIdsCart) {
+      let result = 0;
       const db = getDb();
-      productIdsCart.forEach(p => {
-         return db.collection('products')
-            .findOne({_id: new mongo.ObjectID(p)})
-            .then(product => {
-               if(!product){
-                  this.deleteItemCart(p)
-               }
-            })
-      })
+      const resolve = await new Promise(() => {
+         productIdsCart.forEach(p => {
+            db.collection('products').findOne({ _id: new mongo.ObjectID(p) })
+               .then(product => {
+                  if (!product) {
+                     this.deleteItemCart(p)
+                        .then(() => {
+                           result = +result + 1;
+                        });
+                  }
+               });
+            });
+         });
+      resolve.resolve(result > 0 ? `Deleted ${result} non existent products` : 'ok');
+      console.log('test'); 
    }
  
    getCart() {
       const db = getDb();
       const productIds = this.cart.items.map(p => p.productId);
       return db.collection('products').find({_id: {$in: productIds}})
-      .toArray()
+      .toArray()      
+      .then(products => {
+         if (productIds.length !== products.length) {
+            this.cleanUpCart(productIds).then(result => {
+               console.log('clean:', result);
+               return products;
+            });
+         }
+         return products;
+      })
       .then(products => {
          return products.map(p =>{
             return {
@@ -101,7 +117,6 @@ class User {
       const db = getDb();
       return this.getCart()
          .then(cart => {
-            console.log(cart);
             const order = {
                "items": cart,
                "user": {"userId": new mongo.ObjectID(this._id), "name": this.name, "email": this.email}

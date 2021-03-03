@@ -19,12 +19,12 @@ exports.getIndex = (req, res) => {
 
 exports.getCart = (req, res) => {
    req.user.getCart()
-      .then(prodsInCart => {      
+      .then(prodsInCart => {     
          const cartInfo = {products: [...prodsInCart], totalCart: 0}
          res.render('shop/cart', {pageTitle:'Cart Items', path:'/cart', cart: cartInfo});
       })
       .catch(err=>{
-         console.log(err);
+         console.log("error:" + err);
       });
 }
 

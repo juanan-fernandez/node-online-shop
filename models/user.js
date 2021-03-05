@@ -49,24 +49,23 @@ class User {
       );
    }
 
-   async cleanUpCart(productIdsCart) {
+   cleanUpCart(productIdsCart) {
       let result = 0;
       const db = getDb();
-      const resolve = await new Promise(() => {
-         productIdsCart.forEach(p => {
-            db.collection('products').findOne({ _id: new mongo.ObjectID(p) })
-               .then(product => {
-                  if (!product) {
-                     this.deleteItemCart(p)
-                        .then(() => {
-                           result = +result + 1;
-                        });
-                  }
-               });
-            });
+      
+      const promises = productIdsCart.map(p => {
+         return db.collection('products').findOne({ _id: new mongo.ObjectID(p) })
+            .then(product => {
+               if (!product) {
+                  return this.deleteItemCart(p)
+                     .then(() => {
+                        return result=result+1
+                     });
+               }
          });
-      resolve.resolve(result > 0 ? `Deleted ${result} non existent products` : 'ok');
-      console.log('test'); 
+      });
+           
+      return Promise.all(promises).then( _ => result);
    }
  
    getCart() {
@@ -77,7 +76,8 @@ class User {
       .then(products => {
          if (productIds.length !== products.length) {
             this.cleanUpCart(productIds).then(result => {
-               console.log('clean:', result);
+               console.log(result);
+               console.log('clean:', result > 0 ? `Deleted ${result} non existent products` : '0');
                return products;
             });
          }

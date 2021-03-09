@@ -10,8 +10,8 @@
                         <li>
                             <h1># <%=o._id%></h1>
                             <ul>
-                                <%o.items.forEach(p=> {%>
-                                    <li><%=p.title%> (<%=p.quantity%>)</li>
+                                <%o.products.forEach(p=> {%>
+                                    <li><%=p.productData.title%> (<%=p.quantity%>)</li>
                                 <%})%>
                             </ul>
                         </li>

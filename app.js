@@ -11,7 +11,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 //modelos
-//const User = require('./models/user');
+const User = require('./models/user');
 
 const app = express();
 
@@ -23,28 +23,37 @@ app.use(express.static(path.join(__dirname, 'public'))); //le indico la ruta al 
 app.use(bodyParser.urlencoded({extended: false})) //body-parser config
 
 //RUTAS
-// app.use((req, res, next) =>{
-//    User.findById('60395c96ac9a78495aa29a10').then(user => {
-//       req.user = new User(user.name, user.email, user.passwd, user._id, user.cart);
-//       next();
-//    }).catch(err => {
-//       console.log(err);
-//    }) 
-// });
+app.use((req, res, next) =>{
+   User.findById('60468a8832b5705238a0891e').then(user => {
+      req.user = user;
+      next();
+   }).catch(err => {
+      console.log(err);
+   }) 
+});
 
-// app.use('/admin',adminRoutes); //podemos filtrar por un prefijo las rutas
-// app.use(shopRoutes);
+app.use('/admin',adminRoutes); //podemos filtrar por un prefijo las rutas
+app.use(shopRoutes);
 // //page not found
 app.use(notFound.getNotFound);
 
 const uriMongo = `mongodb+srv://juanan:${process.env.MONGO_PASSWORD}@cursonodemax.omdwl.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`;
 mongoose.connect(uriMongo, {useUnifiedTopology: true, useNewUrlParser:true })
    .then(() =>{
-      const userId = "60395c96ac9a78495aa29a10";
-      // if (!User.findById(userId)){
-      //    const user = new User('juanan', 'juanan@testing.com', 'store-my-password');
-      //    user.save()
-      // }
+      const userId = "60468a8832b5705238a0891e";
+      User.findById(userId).then(user => {
+         if (!user) {
+            const newUser = new User({
+               name:'juanan', 
+               email:'juanan@testing.com', 
+               password:'store-my-password', 
+               cart: {
+                  items:[]
+               }
+            });
+            newUser.save()
+         }
+      })
       //server
       app.listen(3000);
    }).catch(err=>{

@@ -65,7 +65,6 @@ exports.getOrders = (req, res) => {
       });
    })
    .catch(err=> console.log(err));
-   
 }
 
 exports.postOrder = (req, res) => {
@@ -93,8 +92,7 @@ exports.postOrder = (req, res) => {
       console.log('Cart cleaned:', result);
       res.redirect('/orders');
    })
-   .catch(err => console.log(err));
-     
+   .catch(err => console.log(err));    
 }
 
 

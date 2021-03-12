@@ -28,15 +28,17 @@
                                             product.description) %>
                                     </p>
                                 </div>
-                                <div class="card__actions">
-                                    <a href="/product-detail/<%=product._id%>" class="btn">+Info</a>
-                                    <%-include('../includes/add-to-cart.ejs', {product: product})%> 
-                                </div>
+                                    <div class="card__actions">
+                                        <a href="/product-detail/<%=product._id%>" class="btn">+Info</a>
+                                        <%if(isAuth){%>                                                
+                                            <%-include('../includes/add-to-cart.ejs', {product: product})%> 
+                                        <%}%>
+                                    </div>
                             </article>
-                            <% } %>
-                    </div>
-                    <% } else { %>
-                        <h1>No Products Found!</h1>
                         <% } %>
+                    </div>
+                <% } else { %>
+                    <h1>No Products Found!</h1>
+                <% } %>
             </main>
             <%- include('../includes/end.ejs') %>

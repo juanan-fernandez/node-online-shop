@@ -97,7 +97,7 @@ exports.postOrder = (req, res) => {
 		.then((result) => {
 			console.log('Order created:', result);
 			//remove items from cart
-			return req.session.user.clearCart();
+			return req.user.clearCart();
 		})
 		.then((result) => {
 			console.log('Cart cleaned:', result);

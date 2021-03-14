@@ -1,5 +1,6 @@
 .cart__item-list {
   list-style: none;
+  margin: 0;
   padding: 0;
   margin: auto;
   width: 40rem;
@@ -17,8 +18,8 @@
 
 .cart__item h1,
 .cart__item h2 {
+  margin-right: 1rem;
   font-size: 1.2rem;
   margin: 0;
-  margin-right: 1rem;
 }
 

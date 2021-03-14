@@ -49,10 +49,11 @@ app.use(
 
 //RUTAS
 app.use((req, res, next) => {
-	let userId;
 	const user = req.session.user;
-	if (user) userId = req.session.user._id || 'no_user';
-	User.findById(userId)
+	if (!user) {
+		return next();
+	}
+	User.findById(user._id)
 		.then((user) => {
 			req.user = user;
 			next();

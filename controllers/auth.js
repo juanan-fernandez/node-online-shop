@@ -1,7 +1,7 @@
 const User = require('../models/user');
 
 getLoginPage = (req, res) => {
-	res.render('shop/login', {
+	res.render('auth/login', {
 		pageTitle: 'Login',
 		path: '/login',
 		isAuth: false,
@@ -9,15 +9,16 @@ getLoginPage = (req, res) => {
 };
 
 postLogin = (req, res) => {
-	//console.log(req.body.email, req.body.passwd);
-	//validamos usuario y password
 	//res.setHeader('Set-Cookie', 'loggedIn=true'); forma de crear una cookie
 	User.findById('60468a8832b5705238a0891e')
 		.then((user) => {
 			console.log(user);
 			req.session.user = user;
 			req.session.isLoggedIn = true;
-			res.redirect('/products');
+			req.session.save((err) => {
+				console.log(err);
+				res.redirect('/products');
+			});
 		})
 		.catch((err) => {
 			console.log(err);
@@ -31,4 +32,14 @@ postLogOut = (req, res, next) => {
 	});
 };
 
-module.exports = { getLoginPage, postLogin, postLogOut };
+getSignUpPage = (req, res) => {
+	res.render('auth/signup', {
+		pageTitle: 'SignUp',
+		path: '/signup',
+		isAuth: false,
+	});
+};
+
+postSignUp = (req, res) => {};
+
+module.exports = { getLoginPage, postLogin, postLogOut, getSignUpPage, postSignUp };

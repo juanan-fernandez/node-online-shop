@@ -71,21 +71,7 @@ app.use(notFound.getNotFound); // //page not found
 mongoose
 	.connect(URI_MONGO, { useUnifiedTopology: true, useNewUrlParser: true })
 	.then(() => {
-		const userId = '60468a8832b5705238a0891e';
-		User.findById(userId).then((user) => {
-			if (!user) {
-				const newUser = new User({
-					name: 'juanan',
-					email: 'juanan@testing.com',
-					password: 'store-my-password',
-					cart: {
-						items: [],
-					},
-				});
-				newUser.save();
-			}
-		});
-		//server
+		//después de lograr la conexión a la bd pongo en marcha el servidor
 		app.listen(3000);
 	})
 	.catch((err) => {

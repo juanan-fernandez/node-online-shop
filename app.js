@@ -16,6 +16,7 @@ dotenv.config();
 
 //modelos
 const User = require('./models/user');
+const { RSA_NO_PADDING } = require('constants');
 
 const app = express(); //iniciar express
 
@@ -66,6 +67,13 @@ app.use((req, res, next) => {
 		.catch((err) => {
 			console.log(err);
 		});
+});
+
+//middleware para añadir a cada página que renderizamos una información
+app.use((req, res, next) => {
+	res.locals.isAuth = req.session.isLoggedIn;
+	res.locals.csrfToken = req.csrfToken();
+	next();
 });
 
 app.use('/admin', adminRoutes); //podemos filtrar por un prefijo las rutas

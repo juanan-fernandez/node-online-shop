@@ -4,7 +4,7 @@ const Order = require('../models/order');
 exports.getIndex = (req, res) => {
 	Product.find()
 		.then((products) => {
-			console.log(req.session.isLoggedIn);
+			//console.log(req.session.isLoggedIn);
 			res.render('shop/index', {
 				prods: products,
 				pageTitle: 'Products List',

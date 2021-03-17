@@ -1,6 +1,10 @@
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
+	//asegurar las rutas en los ficheros de rutas con un middleware video 258
+	// if (!req.session.isLoggedIn) {
+	// 	return res.redirect('/login');
+	// }
 	res.render('admin/edit-product', {
 		pageTitle: 'Add Prod',
 		path: '/admin/add-product',

@@ -4,6 +4,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const csurf = require('csurf');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -21,8 +22,7 @@ const app = express(); //iniciar express
 //conexion bd
 const URI_MONGO = `mongodb+srv://juanan:${process.env.MONGO_PASSWORD}@cursonodemax.omdwl.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`;
 
-// const MONGO_SESSIONS = `mongodb://juanan:${process.env.MONGO_PASSWORD}@cursonodemax-shard-00-00.omdwl.mongodb.net:27017,cursonodemax-shard-00-01.omdwl.mongodb.net:27017,cursonodemax-shard-00-02.omdwl.mongodb.net:27017/${process.env.MONGO_DATABASE}?ssl=true`;
-
+//store sessions
 const store = new MongoDBStore({
 	uri: URI_MONGO,
 	collection: 'my-seassons',
@@ -31,6 +31,9 @@ const store = new MongoDBStore({
 store.on('error', function (error) {
 	console.log(error);
 });
+
+//protección ataques csrf video 259. Más info: https://github.com/expressjs/csurf
+const csrfProtection = csurf();
 
 //motor de plantillas ejs
 app.set('view engine', 'ejs');
@@ -46,6 +49,8 @@ app.use(
 		store: store,
 	})
 );
+
+app.use(csrfProtection); //OJO! siempre inicializar después del objeto session.
 
 //RUTAS
 app.use((req, res, next) => {

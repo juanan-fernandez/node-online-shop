@@ -9,7 +9,6 @@ exports.getIndex = (req, res) => {
 				prods: products,
 				pageTitle: 'Products List',
 				path: '/products',
-				isAuth: req.session.isLoggedIn,
 			}); //usamos motor de plantillas
 		})
 		.catch((err) => {
@@ -29,7 +28,6 @@ exports.getCart = (req, res) => {
 				pageTitle: 'Cart Items',
 				path: '/cart',
 				cart: cartInfo,
-				isAuth: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -71,7 +69,6 @@ exports.getOrders = (req, res) => {
 				pageTitle: 'Pedidos',
 				path: '/orders',
 				orders: orders,
-				isAuth: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => console.log(err));
@@ -82,7 +79,6 @@ exports.postOrder = (req, res) => {
 		.populate('cart.items.productId')
 		.execPopulate()
 		.then((userCart) => {
-			console.log(userCart.cart.items);
 			const products = userCart.cart.items.map((p) => {
 				return { productData: { ...p.productId }, quantity: p.quantity };
 			});
@@ -112,7 +108,6 @@ exports.getProducts = (req, res) => {
 			prods: products,
 			pageTitle: 'Products List',
 			path: '/products',
-			isAuth: req.session.isLoggedIn,
 		});
 	});
 };
@@ -124,11 +119,10 @@ exports.getProductDetails = (req, res) => {
 			pageTitle: product.title,
 			path: '/products',
 			product: product,
-			isAuth: req.session.isLoggedIn,
 		});
 	});
 };
 
 exports.getCheckOut = (req, res) => {
-	res.render('shop/checkout', { pageTitle: 'Products detail', path: '/products', isAuth: req.session.isLoggedIn });
+	res.render('shop/checkout', { pageTitle: 'Products detail', path: '/products' });
 };

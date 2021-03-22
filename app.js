@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csurf = require('csurf');
+const flash = require('connect-flash');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -16,7 +17,6 @@ dotenv.config();
 
 //modelos
 const User = require('./models/user');
-const { RSA_NO_PADDING } = require('constants');
 
 const app = express(); //iniciar express
 
@@ -52,6 +52,7 @@ app.use(
 );
 
 app.use(csrfProtection); //OJO! siempre inicializar después del objeto session.
+app.use(flash()); //OJO! connect-flash siempre iniciar después de haber conigurado la sesión.
 
 //RUTAS
 app.use((req, res, next) => {

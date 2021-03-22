@@ -6,6 +6,7 @@ getLoginPage = (req, res) => {
 		pageTitle: 'Login',
 		path: '/login',
 		isAuth: false,
+		errorMessage: req.flash('error'),
 	});
 };
 
@@ -15,20 +16,22 @@ postLogin = (req, res) => {
 	User.findOne({ email: req.body.email })
 		.then((user) => {
 			if (!user) {
-				res.redirect('/login');
+				req.flash('error', 'Invalid email.');
+				return res.redirect('/login');
 			}
 			bcrypt
 				.compare(passwd, user.password)
 				.then((correctPassword) => {
-					if (correctPassword) {
-						req.session.user = user;
-						req.session.isLoggedIn = true;
-						return req.session.save((err) => {
-							console.log(err);
-							res.redirect('/products');
-						});
+					if (!correctPassword) {
+						req.flash('error', 'Invalid password');
+						return res.redirect('/login');
 					}
-					res.redirect('/login');
+					req.session.user = user;
+					req.session.isLoggedIn = true;
+					return req.session.save((err) => {
+						console.log(err);
+						res.redirect('/products');
+					});
 				})
 				.catch((err) => {
 					console.log(err);
@@ -52,6 +55,7 @@ getSignUpPage = (req, res) => {
 		pageTitle: 'SignUp',
 		path: '/signup',
 		isAuth: false,
+		errorMessage: req.flash('error'),
 	});
 };
 
@@ -59,7 +63,7 @@ postSignUp = (req, res) => {
 	User.findOne({ email: req.body.email })
 		.then((user) => {
 			if (user) {
-				console.log('entro');
+				req.flash('error', 'Email account already exists in our data base');
 				return res.redirect('/signup');
 			}
 			return bcrypt.hash(req.body.password, 12).then((hashedPassword) => {
@@ -73,6 +77,7 @@ postSignUp = (req, res) => {
 			});
 		})
 		.then((result) => {
+			console.log(result);
 			res.redirect('/login');
 		})
 		.catch((err) => {

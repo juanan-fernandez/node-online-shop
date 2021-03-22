@@ -9,7 +9,6 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add Prod',
 		path: '/admin/add-product',
 		product: null,
-		isAuth: req.session.isLoggedIn,
 	});
 };
 
@@ -42,7 +41,6 @@ exports.getEditProduct = (req, res) => {
 				pageTitle: 'Edit Prod',
 				path: '/admin/edit-product',
 				product: product,
-				isAuth: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -86,7 +84,6 @@ exports.getProducts = (req, res) => {
 			prods: products,
 			pageTitle: 'Products List',
 			path: '/admin/products',
-			isAuth: req.session.isLoggedIn,
 		}); //usamos motor de plantillas
 	});
 };

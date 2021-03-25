@@ -19,6 +19,12 @@ form {
 	display: inline;
 }
 
+a,
+a:visited {
+	text-decoration: none;
+	color: #00695c;
+}
+
 .centered {
 	text-align: center;
 }
@@ -76,6 +82,7 @@ form {
 .main-header__item button:hover,
 .main-header__item button:active {
 	color: #ffeb3b;
+	transition: all 300ms;
 }
 
 .mobile-nav {
@@ -219,6 +226,7 @@ form {
 .btn:active {
 	background-color: #00695c;
 	color: white;
+	transition: all 300ms;
 }
 
 .btn.danger {

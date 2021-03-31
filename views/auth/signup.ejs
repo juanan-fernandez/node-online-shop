@@ -7,29 +7,36 @@
    <%- include('../includes/navigation.ejs') %>
 
     <main>
-        <form class="login-form" action="/signup" method="POST">
+        <form class="login-form" action="/signup" method="POST" novalidate>
             <div class="form-control">
                 <label for="name">Nombre</label>
-                <input type="text" name="name" id="email" required placeholder="Nombre y apellidos">
+                <input type="text" name="name" id="name" required placeholder="Nombre y apellidos" value=<%=oldValues.name%>>
             </div>
             <div class="form-control">
                 <label for="email">E-Mail</label>
-                <input type="email" name="email" id="email">
+                <input 
+                    class="<%=validationErrs.find(e => e.param === 'email') ? 'red' : ''%>"
+                    type="email"
+                    name="email"
+                    id="email"
+                    value=<%=oldValues.email%>>
             </div>
             <div class="form-control">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password">
+                <input type="password" name="password" id="password" value="<%=oldValues.password%>"
+                        class="<%=validationErrs.find(e => e.param === 'password') ? 'red' : ''%>">
             </div>
             <div class="form-control">
                 <label for="confirmPassword">Confirm Password</label>
-                <input type="password" name="confirmPassword" id="confirmPassword">
+                <input type="password" name="confirmPassword" id="confirmPassword" value="<%=oldValues.confirmPassword%>"
+                        class="<%=validationErrs.find(e => e.param === 'confirmPassword') ? 'red' : ''%>">
             </div>
             <button class="btn" type="submit">Login</button>
             <input type="hidden" name="_csrf" value="<%=csrfToken%>" />
         </form>
         <%if (errorMessage.length > 0) {%>
             <div class="user-message user-message--err">
-               <p><%=errorMessage%></p>
+               <p><%-errorMessage%></p>
                <p>Please, try again.</p>
             </div>
          <%}%>

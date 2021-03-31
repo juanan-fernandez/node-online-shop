@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 //envio de emails
 const nodemailer = require('nodemailer');
 const sgTransport = require('nodemailer-sendgrid-transport');
+//express-validator para validar formularios
+const { validationResult } = require('express-validator');
 
 //variables entorno
 const dotenv = require('dotenv');
@@ -20,7 +22,6 @@ const cliente = nodemailer.createTransport(
 
 //modelo usuarios
 const User = require('../models/user');
-const user = require('../models/user');
 
 getLoginPage = (req, res) => {
 	res.render('auth/login', {
@@ -33,39 +34,53 @@ getLoginPage = (req, res) => {
 
 postLogin = (req, res) => {
 	//res.setHeader('Set-Cookie', 'loggedIn=true'); forma de crear una cookie
+	const errors = validationResult(req);
+	let errMessages = '';
+	if (!errors.isEmpty()) {
+		const arrErrors = errors.array();
+		arrErrors.forEach(errorItem => {
+			errMessages = errMessages + `${errorItem.msg}</br>`;
+		});
+		return res.status(422).render('auth/login', {
+			pageTitle: 'Login',
+			path: '/login',
+			isAuth: false,
+			errorMessage: errMessages,
+		});
+	}
 	const passwd = req.body.passwd;
 	User.findOne({ email: req.body.email })
-		.then((user) => {
+		.then(user => {
 			if (!user) {
-				req.flash('error', 'Invalid email.');
+				req.flash('error', 'Invalid account.');
 				return res.redirect('/login');
 			}
 			bcrypt
 				.compare(passwd, user.password)
-				.then((correctPassword) => {
+				.then(correctPassword => {
 					if (!correctPassword) {
 						req.flash('error', 'Invalid password');
 						return res.redirect('/login');
 					}
 					req.session.user = user;
 					req.session.isLoggedIn = true;
-					return req.session.save((err) => {
+					return req.session.save(err => {
 						console.log(err);
 						res.redirect('/products');
 					});
 				})
-				.catch((err) => {
+				.catch(err => {
 					console.log(err);
 					res.redirect('/login');
 				});
 		})
-		.catch((err) => {
+		.catch(err => {
 			console.log(err);
 		});
 };
 
 postLogOut = (req, res, next) => {
-	req.session.destroy((err) => {
+	req.session.destroy(err => {
 		console.log(err);
 		res.redirect('/');
 	});
@@ -77,25 +92,50 @@ getSignUpPage = (req, res) => {
 		path: '/signup',
 		isAuth: false,
 		errorMessage: req.flash('error'),
+		oldValues: {
+			name: '',
+			email: '',
+			password: '',
+			confirmPassword: '',
+		},
+		validationErrs: [],
 	});
 };
 
 postSignUp = (req, res) => {
-	User.findOne({ email: req.body.email })
-		.then((user) => {
-			if (user) {
-				req.flash('error', 'Email account already exists in our database');
-				return res.redirect('/signup');
-			}
-			return bcrypt.hash(req.body.password, 12).then((hashedPassword) => {
-				const newUser = new User({
-					name: req.body.name,
-					email: req.body.email,
-					password: hashedPassword,
-					cart: { items: [] },
-				});
-				return newUser.save();
+	const errors = validationResult(req);
+	let errMessages = '';
+	if (!errors.isEmpty()) {
+		const arrErrors = errors.array();
+		arrErrors.forEach(errorItem => {
+			errMessages = errMessages + `${errorItem.msg}</br>`;
+		});
+		console.log(arrErrors);
+		return res.status(422).render('auth/signup', {
+			pageTitle: 'SignUp',
+			path: '/signup',
+			isAuth: false,
+			errorMessage: errMessages,
+			oldValues: {
+				name: req.body.name,
+				email: req.body.email,
+				password: req.body.password,
+				confirmPassword: req.body.confirmPassword,
+			},
+			validationErrs: arrErrors,
+		});
+	}
+
+	return bcrypt
+		.hash(req.body.password, 12)
+		.then(hashedPassword => {
+			const newUser = new User({
+				name: req.body.name,
+				email: req.body.email,
+				password: hashedPassword,
+				cart: { items: [] },
 			});
+			return newUser.save();
 		})
 		.then(() => {
 			res.redirect('/login');
@@ -105,11 +145,11 @@ postSignUp = (req, res) => {
 				subject: 'Subscription Confirmed',
 				html: '<h1>Hello world! You successfully signed up!</h1>',
 			};
-			return cliente.sendMail(email).catch((err) => {
+			return cliente.sendMail(email).catch(err => {
 				console.log(err);
 			});
 		})
-		.catch((err) => {
+		.catch(err => {
 			console.log(err);
 		});
 };
@@ -127,7 +167,7 @@ getResetPage = (req, res) => {
 postResetPasswd = (req, res) => {
 	let token = '';
 	User.findOne({ email: req.body.email })
-		.then((user) => {
+		.then(user => {
 			if (!user) {
 				req.flash('error', 'This email account does not exists in our database');
 				return res.redirect('/reset');
@@ -159,13 +199,13 @@ postResetPasswd = (req, res) => {
 							req.flash('success', 'E-mail sent. Check your account, please.');
 							res.redirect('/reset');
 						})
-						.catch((err) => {
+						.catch(err => {
 							console.log(err);
 						});
 				});
 			});
 		})
-		.catch((err) => {
+		.catch(err => {
 			console.log(err);
 		});
 };
@@ -176,7 +216,7 @@ getNewPasswordPage = (req, res) => {
 		resetToken: token,
 		tokenExpiration: { $gt: Date.now() },
 	};
-	User.findOne(query).then((user) => {
+	User.findOne(query).then(user => {
 		res.render('auth/new-password', {
 			pageTitle: 'New Password',
 			path: '/reset',
@@ -184,7 +224,7 @@ getNewPasswordPage = (req, res) => {
 			errorMessage: req.flash('error'),
 			userId: user._id,
 			passwdToken: token,
-		}).catch((err) => {
+		}).catch(err => {
 			console.log(err);
 		});
 	});
@@ -201,24 +241,24 @@ postNewPassword = (req, res) => {
 	};
 	let resultUser;
 	User.findOne(query)
-		.then((user) => {
+		.then(user => {
 			if (!user) {
 				console.log('Not user found');
 			}
 			resultUser = user;
 			return bcrypt.hash(newPasswd, 12);
 		})
-		.then((hashedPassword) => {
+		.then(hashedPassword => {
 			resultUser.password = hashedPassword;
 			resultUser.resetToken = undefined;
 			resultUser.tokenExpiration = undefined;
 			return resultUser.save();
 		})
-		.then((result) => {
+		.then(result => {
 			console.log(result);
 			return res.redirect('login');
 		})
-		.catch((err) => {
+		.catch(err => {
 			console.log(err);
 		});
 };

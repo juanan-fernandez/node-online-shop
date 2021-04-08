@@ -29,6 +29,10 @@ getLoginPage = (req, res) => {
 		path: '/login',
 		isAuth: false,
 		errorMessage: req.flash('error'),
+		oldValues: {
+			email: '',
+		},
+		validationErrs: [],
 	});
 };
 
@@ -46,13 +50,17 @@ postLogin = (req, res) => {
 			path: '/login',
 			isAuth: false,
 			errorMessage: errMessages,
+			oldValues: {
+				email: req.body.email,
+			},
+			validationErrs: arrErrors,
 		});
 	}
 	const passwd = req.body.passwd;
 	User.findOne({ email: req.body.email })
 		.then(user => {
 			if (!user) {
-				req.flash('error', 'Invalid account.');
+				req.flash('error', 'Invalid e-mail account.');
 				return res.redirect('/login');
 			}
 			bcrypt
@@ -231,6 +239,23 @@ getNewPasswordPage = (req, res) => {
 };
 
 postNewPassword = (req, res) => {
+	const errors = validationResult(req);
+	let errMessages = '';
+	if (!errors.isEmpty()) {
+		const arrErrors = errors.array();
+		arrErrors.forEach(errorItem => {
+			errMessages = errMessages + `${errorItem.msg}</br>`;
+		});
+		return res.status(422).render('auth/new-password', {
+			pageTitle: 'New Password',
+			path: '/reset',
+			isAuth: false,
+			passwdToken: req.body.passwdToken,
+			userId: req.body.userId,
+			errorMessage: errMessages,
+		});
+	}
+	//si llegamos hasta aquí es que el usuario ha introducido los datos correctamente.
 	const userId = req.body.userId;
 	const newPasswd = req.body.password;
 	const token = req.body.passwdToken;
@@ -239,6 +264,7 @@ postNewPassword = (req, res) => {
 		tokenExpiration: { $gt: Date.now() },
 		_id: userId,
 	};
+
 	let resultUser;
 	User.findOne(query)
 		.then(user => {

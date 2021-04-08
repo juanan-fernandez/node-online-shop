@@ -9,10 +9,11 @@ router.get('/login', authController.getLoginPage);
 router.post(
 	'/login',
 	[
-		body('email', 'Please enter a valid e-mail.').isEmail(),
+		body('email', 'Please enter a valid e-mail.').isEmail().normalizeEmail(),
 		body('passwd', 'The password must contain only letters and numbers and must be at least 5 characters')
 			.isLength({ min: 5 })
-			.isAlphanumeric(),
+			.isAlphanumeric()
+			.trim(),
 	],
 	authController.postLogin
 );
@@ -32,16 +33,20 @@ router.post(
 						return Promise.reject('Email account already exists in our database');
 					}
 				});
-			}),
+			})
+			.normalizeEmail(),
 
 		body('password', 'The password must contain only letters and numbers and must be at least 5 characters')
+			.trim()
 			.isLength({ min: 5 })
 			.isAlphanumeric(),
 
-		body('confirmPassword', 'The password and password confirm are NOT EQUAL.').custom((value, { req }) => {
-			if (value !== req.body.password) return false;
-			return true;
-		}),
+		body('confirmPassword', 'The password and password confirm are NOT EQUAL.')
+			.trim()
+			.custom((value, { req }) => {
+				if (value !== req.body.password) return false;
+				return true;
+			}),
 	],
 	authController.postSignUp
 );
@@ -50,5 +55,22 @@ router.get('/reset', authController.getResetPage);
 router.post('/reset', authController.postResetPasswd);
 
 router.get('/reset/:token', authController.getNewPasswordPage);
-router.post('/newpassword', authController.postNewPassword);
+router.post(
+	'/newpassword',
+	[
+		body('password', 'The password must contain only letters and numbers and must be at least 5 characters')
+			.trim()
+			.isLength({ min: 5 })
+			.isAlphanumeric(),
+
+		body('confirmPassword', 'The password and password confirm are NOT EQUAL.')
+			.trim()
+			.custom((value, { req }) => {
+				if (value !== req.body.password) return false;
+				return true;
+			}),
+	],
+	authController.postNewPassword
+);
+
 module.exports = router;

@@ -1,15 +1,54 @@
 //librerias de terceros
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
+
 //imports propios
 const adminController = require('../controllers/admin');
 const isAuth = require('../middlewares/is-auth');
 
 router.get('/add-product', isAuth, adminController.getAddProduct);
-router.post('/add-product', isAuth, adminController.postAddProduct);
+router.post(
+	'/add-product',
+	isAuth,
+	[
+		body('title', 'Please enter a title for the product.').trim().notEmpty().isString(),
+		body('price', 'Please enter a valid price greater than 0, for the product')
+			.trim()
+			.isFloat()
+			.custom((value, { req }) => {
+				if (value <= 0) return false;
+				return true;
+			}),
+		body('imageUrl', 'Please enter a valid URL for the image of the product').trim().isURL(),
+		body('description', 'Please description for the product must be at least 10 characters')
+			.trim()
+			.isLength({ min: 5 }),
+	],
+	adminController.postAddProduct
+);
 
 router.get('/edit-product/:productId', isAuth, adminController.getEditProduct);
-router.post('/edit-product', isAuth, adminController.postEditProduct);
+router.post(
+	'/edit-product',
+	isAuth,
+	[
+		body('title', 'Please enter a title for the product.').trim().notEmpty().isString(),
+		body('price', 'Please enter a valid price greater than 0, for the product')
+			.trim()
+			.isFloat()
+			.custom((value, { req }) => {
+				if (value <= 0) return false;
+				return true;
+			}),
+		body('imageUrl', 'Please enter a valid URL for the image of the product').trim().isURL(),
+		body('description', 'Please description for the product must be at least 10 characters')
+			.trim()
+			.isLength({ min: 5 }),
+	],
+	adminController.postEditProduct
+);
+
 router.post('/delete-product', isAuth, adminController.postDeleteProduct);
 
 router.get('/products', isAuth, adminController.getProducts);

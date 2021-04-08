@@ -9,11 +9,13 @@
             <form class="login-form" action="/login" method="POST" novalidate>
                <div class="form-control">
                   <label for="title">Email</label>
-                  <input type="email" name="email" id="email" required placeholder="Your e-mail account">
+                  <input type="email" name="email" id="email" required placeholder="Your e-mail account" value="<%=oldValues.email%>"
+                        class="<%=validationErrs.find(e => e.param === 'email') ? 'red' : ''%>">
                </div>
                <div class="form-control">
                   <label for="passwd">Password</label>
-                  <input type="password" name="passwd" id="passwd" required>
+                  <input type="password" name="passwd" id="passwd" required 
+                        class="<%=validationErrs.find(e => e.param === 'passwd') ? 'red' : ''%>">
                </div>
                <button class="btn" type="submit">Login</button>
                <input type="hidden" name="_csrf" value="<%=csrfToken%>" />

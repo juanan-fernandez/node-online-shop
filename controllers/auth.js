@@ -73,7 +73,7 @@ postLogin = (req, res) => {
 					req.session.user = user;
 					req.session.isLoggedIn = true;
 					return req.session.save(err => {
-						console.log(err);
+						if (err) console.log(err);
 						res.redirect('/products');
 					});
 				})

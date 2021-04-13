@@ -3,6 +3,12 @@ const { validationResult } = require('express-validator');
 
 const Product = require('../models/product');
 
+const errHandler = err => {
+	const error = new Error(err);
+	error.httpStatusCode = 500;
+	return next(error);
+};
+
 exports.getAddProduct = (req, res, next) => {
 	//asegurar las rutas en los ficheros de rutas con un middleware video 258
 	// if (!req.session.isLoggedIn) {
@@ -62,8 +68,12 @@ exports.postAddProduct = (req, res) => {
 			res.redirect('/admin/products');
 		})
 		.catch(err => {
-			console.log(err);
-			throw err;
+			//res.redirect('/500'); //para no tener que hacer el redirect 500 en cada error
+			//usamos un middleware
+			//podemos poner este código en una función para ser llamado desde cada catch
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 };
 
@@ -81,7 +91,7 @@ exports.getEditProduct = (req, res) => {
 			});
 		})
 		.catch(err => {
-			console.log(err);
+			errorHandler(err);
 		});
 };
 
@@ -131,19 +141,19 @@ exports.postEditProduct = (req, res) => {
 			});
 		})
 		.catch(err => {
-			console.log(err);
+			errHandler(err);
 		});
 };
 
 exports.postDeleteProduct = (req, res) => {
 	const prodId = req.body.productId;
-	Product.deleteOne({ _id: prodId, userId: req.user_id })
+	Product.deleteOne({ _id: prodId, userId: req.user._id })
 		.then(result => {
 			console.log('Deleted:', result); //en result viene el nº de registros eliminados
 			res.redirect('/admin/products');
 		})
 		.catch(err => {
-			console.log(err);
+			errHandler(err);
 		});
 };
 

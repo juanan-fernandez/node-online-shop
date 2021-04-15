@@ -20,7 +20,6 @@ router.post(
 				if (value <= 0) return false;
 				return true;
 			}),
-		body('imageUrl', 'Please enter a valid URL for the image of the product').trim().isURL(),
 		body('description', 'Please description for the product must be at least 10 characters')
 			.trim()
 			.isLength({ min: 5 }),
@@ -41,7 +40,6 @@ router.post(
 				if (value <= 0) return false;
 				return true;
 			}),
-		body('imageUrl', 'Please enter a valid URL for the image of the product').trim().isURL(),
 		body('description', 'Please description for the product must be at least 10 characters')
 			.trim()
 			.isLength({ min: 5 }),

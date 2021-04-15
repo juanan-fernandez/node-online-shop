@@ -2,8 +2,9 @@
 const { validationResult } = require('express-validator');
 
 const Product = require('../models/product');
+const fileHelper = require('../util/file');
 
-const errHandler = err => {
+const errHandler = (err, next) => {
 	const error = new Error(err);
 	error.httpStatusCode = 500;
 	return next(error);
@@ -23,17 +24,18 @@ exports.getAddProduct = (req, res, next) => {
 	});
 };
 
-exports.postAddProduct = (req, res) => {
+exports.postAddProduct = (req, res, next) => {
 	const title = req.body.title;
 	const price = req.body.price;
 	const description = req.body.description;
-	const imageUrl = req.body.imageUrl;
+	const image = req.file;
 	const userId = req.session.user;
 
 	//data validation
 	const errors = validationResult(req);
 	let errMessages = '';
-	if (!errors.isEmpty()) {
+	if (!image) errMessages = `File must be a valid image forma file</br>`;
+	if (!errors.isEmpty() || errMessages) {
 		const arrErrors = errors.array();
 		arrErrors.forEach(errorItem => {
 			errMessages = errMessages + `${errorItem.msg}</br>`;
@@ -46,7 +48,6 @@ exports.postAddProduct = (req, res) => {
 				title: title,
 				price: price,
 				description: description,
-				imageUrl: imageUrl,
 				userId: userId,
 			},
 			validationErrs: arrErrors,
@@ -58,14 +59,15 @@ exports.postAddProduct = (req, res) => {
 		title: title,
 		price: price,
 		description: description,
-		imageUrl: imageUrl,
+		imageUrl: image.path,
 		userId: userId,
 	});
-	product
+
+	return product
 		.save()
 		.then(result => {
-			console.log(result);
-			res.redirect('/admin/products');
+			//console.log(result);
+			return res.redirect('/admin/products');
 		})
 		.catch(err => {
 			//res.redirect('/500'); //para no tener que hacer el redirect 500 en cada error
@@ -73,11 +75,12 @@ exports.postAddProduct = (req, res) => {
 			//podemos poner este código en una función para ser llamado desde cada catch
 			const error = new Error(err);
 			error.httpStatusCode = 500;
-			return next(error);
+			next(error);
+			// errorHandler(err);
 		});
 };
 
-exports.getEditProduct = (req, res) => {
+exports.getEditProduct = (req, res, next) => {
 	const prodId = req.params.productId;
 
 	Product.findById({ _id: prodId })
@@ -91,20 +94,21 @@ exports.getEditProduct = (req, res) => {
 			});
 		})
 		.catch(err => {
-			errorHandler(err);
+			errorHandler(err, next);
 		});
 };
 
-exports.postEditProduct = (req, res) => {
+exports.postEditProduct = (req, res, next) => {
 	const title = req.body.title;
 	const price = req.body.price;
 	const description = req.body.description;
-	const imageUrl = req.body.imageUrl;
+	const image = req.file;
 	const productId = req.body.productId;
 
 	//data validation
 	const errors = validationResult(req);
 	let errMessages = '';
+
 	if (!errors.isEmpty()) {
 		const arrErrors = errors.array();
 		arrErrors.forEach(errorItem => {
@@ -118,7 +122,6 @@ exports.postEditProduct = (req, res) => {
 				title: title,
 				price: price,
 				description: description,
-				imageUrl: imageUrl,
 				_id: productId,
 			},
 			validationErrs: arrErrors,
@@ -127,33 +130,42 @@ exports.postEditProduct = (req, res) => {
 
 	Product.findById(productId)
 		.then(product => {
-			console.log(product.userId, req.user._id);
 			if (product.userId.toString() !== req.user._id.toString()) {
 				return res.redirect('/');
 			}
 			product.title = title;
 			product.price = price;
 			product.description = description;
-			product.imageUrl = imageUrl;
+			if (image) {
+				fileHelper.deleteFile(product.imageUrl);
+				product.imageUrl = image.path;
+			}
 			return product.save().then(result => {
 				console.log('Updated product!');
 				res.redirect('/admin/products');
 			});
 		})
 		.catch(err => {
-			errHandler(err);
+			errHandler(err, next);
 		});
 };
 
-exports.postDeleteProduct = (req, res) => {
+exports.postDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
-	Product.deleteOne({ _id: prodId, userId: req.user._id })
+	Product.findById(prodId)
+		.then(prod => {
+			if (!prod) {
+				return next(new Error('Unable to find the product to delete'));
+			}
+			fileHelper.deleteFile(prod.imageUrl);
+			return Product.deleteOne({ _id: prodId, userId: req.user._id });
+		})
 		.then(result => {
 			console.log('Deleted:', result); //en result viene el nº de registros eliminados
 			res.redirect('/admin/products');
 		})
 		.catch(err => {
-			errHandler(err);
+			errHandler(err, next);
 		});
 };
 

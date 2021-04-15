@@ -6,7 +6,7 @@
    <body>
       <%- include('../includes/navigation.ejs') %>
          <main>
-            <form class="product-form" action="<%=(path ==='/admin/add-product' ? '/admin/add-product' : '/admin/edit-product')%>" method="POST">
+            <form class="product-form" action="<%=(path ==='/admin/add-product' ? '/admin/add-product' : '/admin/edit-product')%>" method="POST" enctype="multipart/form-data">
                <div class="form-control">
                   <label for="title">Title</label>
                   <input type="text" name="title" id="title" value="<%=(product ? product.title :'')%>"

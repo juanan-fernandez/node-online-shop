@@ -5,6 +5,7 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csurf = require('csurf');
 const flash = require('connect-flash');
+const multer = require('multer');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -16,6 +17,7 @@ dotenv.config();
 
 //modelos
 const User = require('./models/user');
+const { FILE } = require('dns');
 
 const app = express(); //iniciar express
 
@@ -40,7 +42,24 @@ app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 app.use(express.static(path.join(__dirname, 'public'))); //le indico la ruta al contenido estático
+app.use('/uploaded-images', express.static(path.join(__dirname, '/uploaded-images'))); //le indico la ruta al contenido estático
 app.use(express.urlencoded({ extended: false })); //body-parser config
+//configuracion de multer
+const fileStorage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, 'uploaded-images');
+	},
+	filename: (req, file, cb) => {
+		cb(null, Date.now() + '_' + file.originalname);
+	},
+});
+
+const fileFilter = (req, file, cb) => {
+	if (file.mimetype.indexOf('image') !== -1) cb(null, true);
+	cb(null, false);
+};
+
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')); //multer para trabajar con formularios con datos binarios
 app.use(
 	session({
 		secret: 'thePianoHasbeenDrinking',

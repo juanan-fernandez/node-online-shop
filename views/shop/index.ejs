@@ -29,8 +29,14 @@
                     </article>
                 <% } %>
             </div>
+            <section class="pagination">
+                <%for(let i = 1; i<=lastPage; i++){%>
+                    <a href="/?page=<%=i%>" class="<%=(i==currentPage ? 'active' : '')%>"><%=i%></a>
+                <%}%>
+                
+            </section>
         <% } else { %>
             <h1>No Products Found!</h1>
-        <% } %>
+        <% } %>        
     </main>
 <%- include('../includes/end.ejs') %>

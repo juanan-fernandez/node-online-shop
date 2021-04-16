@@ -12,12 +12,12 @@ const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 const notFound = require('./controllers/notfound');
 
+//variables ENV
 const dotenv = require('dotenv');
 dotenv.config();
 
 //modelos
 const User = require('./models/user');
-const { FILE } = require('dns');
 
 const app = express(); //iniciar express
 
@@ -107,6 +107,7 @@ app.use((error, req, res, next) => {
 	//podriamos hacer log del error en un fichero de texto,
 	//redirigir a una página para mostrar más información del error,
 	//enviar un e-mail al administrador, etc...
+	console.log(error);
 	res.redirect('/500'); //mensje para el usuario
 });
 

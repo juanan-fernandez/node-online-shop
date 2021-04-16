@@ -4,20 +4,40 @@ const pdfDoc = require('pdfkit');
 
 const Product = require('../models/product');
 const Order = require('../models/order');
-const { RSA_NO_PADDING } = require('constants');
+const { page } = require('pdfkit');
+const ITEMS_PER_PAGE = 2;
 
-exports.getIndex = (req, res) => {
+exports.getIndex = (req, res, next) => {
+	const page = +req.query.page || 1;
+	let totalItems = 0;
+
+	/*Product.countProducts()
+		.then(nProducts => {
+			console.log(nProducts);
+		})
+		.catch(err => next(err));*/
 	Product.find()
+		.countDocuments()
+		.then(numProducts => {
+			totalItems = numProducts;
+			return Product.find()
+				.skip((page - 1) * ITEMS_PER_PAGE)
+				.limit(ITEMS_PER_PAGE);
+		})
 		.then(products => {
-			//console.log(req.session.isLoggedIn);
+			//const pages = numProducts / ITEMS_PER_PAGE + (numProducts % ITEMS_PER_PAGE === 0 ? 0 : 1);
 			res.render('shop/index', {
 				prods: products,
 				pageTitle: 'Products List',
 				path: '/products',
+				currentPage: page,
+				hasNextPage: totalItems <= page * ITEMS_PER_PAGE,
+				hasPrevPage: page > 1,
+				lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
 			}); //usamos motor de plantillas
 		})
 		.catch(err => {
-			console.log(err);
+			next(new Error(err));
 		});
 };
 
@@ -108,13 +128,24 @@ exports.postOrder = (req, res) => {
 };
 
 exports.getProducts = (req, res) => {
-	Product.find().then(products => {
-		res.render('shop/product-list', {
-			prods: products,
-			pageTitle: 'Products List',
-			path: '/products',
+	let totalItems = 0;
+	const page = +req.query.page || 1;
+	Product.countProducts()
+		.then(nProducts => {
+			totalItems = nProducts;
+			return Product.find()
+				.skip((page - 1) * ITEMS_PER_PAGE)
+				.limit(ITEMS_PER_PAGE);
+		})
+		.then(products => {
+			res.render('shop/product-list', {
+				prods: products,
+				pageTitle: 'Products List',
+				path: '/products',
+				currentPage: page,
+				lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
+			});
 		});
-	});
 };
 
 exports.getProductDetails = (req, res) => {

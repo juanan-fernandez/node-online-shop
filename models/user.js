@@ -23,7 +23,7 @@ userSchema.methods.addToCart = function (product) {
 	let productIndex = -1;
 
 	updatedCart = [...this.cart.items];
-	productIndex = this.cart.items.findIndex((p) => p.productId.toString() === product._id.toString());
+	productIndex = this.cart.items.findIndex(p => p.productId.toString() === product._id.toString());
 
 	if (productIndex >= 0) {
 		newQty = this.cart.items[productIndex].quantity + 1;
@@ -37,7 +37,7 @@ userSchema.methods.addToCart = function (product) {
 };
 
 userSchema.methods.deleteItemCart = function (prodId) {
-	const updatedCart = this.cart.items.filter((p) => p.productId.toString() !== prodId.toString());
+	const updatedCart = this.cart.items.filter(p => p.productId.toString() !== prodId.toString());
 	this.cart.items = [...updatedCart];
 	return this.save();
 };

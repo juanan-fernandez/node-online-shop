@@ -266,3 +266,26 @@ a:visited {
 	background-color: rgb(255, 196, 196);
 	border-color: red;
 }
+
+.pagination {
+	margin-top: 2rem;
+	margin-bottom: 2rem;
+	text-align: center;
+}
+
+.pagination a {
+	text-decoration: none;
+	color: #00695c;
+	border: 1px solid #00695c;
+	padding: 0.8rem;
+	margin: 0 0.5rem;
+}
+
+.pagination a:hover,
+.pagination a:active,
+.pagination a.active {
+	text-decoration: none;
+	color: white;
+	background-color: #00695c;
+	transition: all 300ms;
+}

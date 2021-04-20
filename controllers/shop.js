@@ -2,9 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const pdfDoc = require('pdfkit');
 
+//variables ENV
+const dotenv = require('dotenv');
+dotenv.config();
+
+const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY);
+
 const Product = require('../models/product');
 const Order = require('../models/order');
-const { page } = require('pdfkit');
+
 const ITEMS_PER_PAGE = 2;
 
 exports.getIndex = (req, res, next) => {
@@ -159,8 +165,50 @@ exports.getProductDetails = (req, res) => {
 	});
 };
 
-exports.getCheckOut = (req, res) => {
-	res.render('shop/checkout', { pageTitle: 'Products detail', path: '/products' });
+exports.getCheckOut = (req, res, next) => {
+	let totalSum = 0;
+	let cartProducts;
+	req.user
+		.populate('cart.items.productId')
+		.execPopulate()
+		.then(userCart => {
+			cartProducts = [...userCart.cart.items];
+			cartProducts.forEach(p => {
+				totalSum += p.productId.price * p.quantity;
+			});
+			return stripe.checkout.sessions
+				.create({
+					payment_method_types: ['card'],
+					line_items: cartProducts.map(p => {
+						return {
+							price_data: {
+								currency: 'eur',
+								product_data: {
+									name: p.productId.title,
+									description: p.productId.description,
+								},
+								unit_amount: p.productId.price,
+							},
+							quantity: p.quantity,
+						};
+					}),
+					mode: 'payment',
+					success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
+					cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
+				})
+				.then(session => {
+					res.render('shop/checkout', {
+						pageTitle: 'Finalizar pedido',
+						path: '/checkout',
+						products: cartProducts,
+						totalSum: totalSum.toFixed(2),
+						sessionId: session.id,
+					});
+				})
+				.catch(err => {
+					next(new Error(err));
+				});
+		});
 };
 
 exports.getInvoice = (req, res, next) => {
